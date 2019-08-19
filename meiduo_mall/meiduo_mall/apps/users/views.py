@@ -18,7 +18,7 @@ class RegisterView(View):
         """
         return render(request,'register.html')
 
-#
+
 # class UsernameCountView(View):
 #     """判断用户名是否重复注册"""
 #
