@@ -12,6 +12,8 @@ from django.views.generic.base import View
 # pycharm不报错但是django不支持从工程文件开始寻找
 # 所以下面这个不能用 要把apps设置标记为source root
 # from meiduo_mall.apps.users.models import User
+from django_redis import get_redis_connection
+
 from users.models import User
 
 
@@ -37,7 +39,9 @@ class RegisterView(View):
         password2 = request.POST.get('password2')
         mobile = request.POST.get('mobile')
         allow = request.POST.get('allow')
+        sms_code_client = request.POST.get('sms_code')
 
+        # 校验信息
         if not all([username,password,password2,mobile,allow]):
             return HttpResponseForbidden('缺少必传参数')
 
@@ -55,6 +59,19 @@ class RegisterView(View):
 
         if allow != 'on':
             return HttpResponseForbidden('请勾选用户协议')
+
+        #获取redis连接对象
+        redis_conn = get_redis_connection('verify_code')
+        #从redis中获取保存的sms_code
+        sms_code_server = redis_conn.get('sms_code_%s' % mobile)
+        #判断sms_code_server是否存在
+        if sms_code_server is None:
+            #不存在直接返回,说明服务器的验证码过期了,超时
+            return  render(request,'register.html',{'sms_code_errmsg':'无效的短信验证码'})
+        #如果sms_code_server存在,则对比两者:
+        if sms_code_client != sms_code_server.decode():
+            #对比失败,说明短信验证码有问题,直接返回:
+            return render(request,'register.html',{'sms_code_errmsg':'输入短信验证码有误'})
 
         try:
             user = User.objects.create_user(username=username,password=password,mobile=mobile)

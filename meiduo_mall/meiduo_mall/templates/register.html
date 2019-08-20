@@ -29,7 +29,7 @@
                     <ul>
                         <li>
                             <label>用户名:</label>
-                            <input v-model="username" @blur="check_username" type="text" name="user_name"
+                            <input v-model="username" @blur="check_username" type="text" name="username"
                                    id="user_name">
                             <span v-show="error_name" class="error_tip">请输入5-20个字符的用户</span>
                         </li>
@@ -57,15 +57,21 @@
                         </li>
                         <li>
                             <label>短信验证码:</label>
-                            <input type="text" name="msg_code" id="msg_code" class="msg_input">
-                            <a href="javascript:;" class="get_msg_code">获取短信验证码</a>
-                            <span class="error_tip">请填写短信验证码</span>
+                            <input type="text" v-model="sms_code" @blur="check_sms_code" name="sms_code" id="msg_code"
+                                   class="msg_input">
+                            <a @click="send_sms_code" class="get_msg_code">[[ sms_code_tip ]]</a>
+                            <span v-show="error_sms_code" class="error_tip">[[ error_sms_code_message ]]</span>
+                            {% if sms_code_errmsg %}
+                                <span class="error_tip">{{ sms_code_errmsg }} </span>
+                            {% endif %}
                         </li>
                         <li class="agreement">
-                            <input @change="check_allow" v-model="allow" type="checkbox" name="allow" id="allow"
+                            <input type="checkbox" v-model="allow" @change="check_allow" name="allow" id="allow"
                                    checked="checked">
-                            <label>同意”美多商城用户使用协议“</label>
-                            <span v-show="error_allow" class="error_tip">请勾选用户协议</span>
+                            <label>
+                                同意”美多商城用户使用协议“
+                            </label>
+                            <span v-show="error_allow" class="error_tip2">请勾选同意</span>
                             {% if register_errmsg %}
                                 <span class="error_tip2">{{ register_errmsg }}</span>
                             {% endif %}
