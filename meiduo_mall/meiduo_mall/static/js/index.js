@@ -9,10 +9,12 @@ var vm = new Vue({
         f3_tab: 1, // 3F 标签页控制
         cart_total_count: 0, // 购物车总数量
         carts: [], // 购物车数据,
+        username:'' //添加一个变量,从cookie中获取用户信息
     },
     mounted(){
         // 获取购物车数据
         this.get_carts();
+        this.username = getCookie('username'); //获取cookie中的用户名 getCookie这个方法位于base.js文件中
     },
     methods: {
         // 获取购物车数据
