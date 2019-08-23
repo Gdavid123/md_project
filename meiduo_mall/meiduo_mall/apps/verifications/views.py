@@ -119,7 +119,7 @@ class SMSCodeView(View):
         # SMS_CODE_REDIS_EXPIRES // 60 = 5min
         # SEND_SMS_TEMPLATE_ID = 1
         # CCP().send_template_sms(mobile,[sms_code,5],constants.SEND_SMS_TEMPLATE_ID)
-        send_sms_code.delay(mobile,sms_code)
+        # send_sms_code.delay(mobile,sms_code)
 
         # 10.响应结果
         return JsonResponse({

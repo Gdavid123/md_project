@@ -15,6 +15,8 @@ urlpatterns = [
     url(r'^logout/$', views.LogoutView.as_view(), name='logout'),
     # 用户中心
     url(r'^info/$', views.UserInfoView.as_view(), name='info'),
-    # 在子路由中, 给 as_view() 函数,添加装饰器:
-    url(r'^info/$', views.UserInfoView.as_view(), name='info'),
+    # 添加邮箱
+    url(r'^emails/$', views.EmailView.as_view()),
+    # 验证邮箱
+    url(r'^emails/verification/$', views.VerifyEmailView.as_view()),
 ]

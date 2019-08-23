@@ -1,11 +1,13 @@
+import json
 import re
 
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
-from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest, \
+    HttpResponseServerError
 from django.shortcuts import render, redirect
-
+from celery_tasks.email.tasks import send_verify_email
 # Create your views here.
 from django.urls import reverse
 from django.views.generic.base import View
@@ -15,8 +17,12 @@ from django.views.generic.base import View
 # from meiduo_mall.apps.users.models import User
 from django_redis import get_redis_connection
 
+from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.views import LoginRequiredMixin
 from users.models import User
+import logging
+
+logger = logging.getLogger('django')
 
 
 class RegisterView(View):
@@ -195,7 +201,7 @@ class LoginView(View):
             response = redirect(next)
         else:
             # 如果是直接登录成功,就重定向到首页
-            response = redirect(reverse('contenes:index'))
+            response = redirect(reverse('contents:index'))
 
         # 设置cookie信息
         response.set_cookie('username',user.username,max_age=3600*24*15)
@@ -230,4 +236,82 @@ class UserInfoView(LoginRequiredMixin,View):
 
     def get(self,request):
         """提供个人信息界面"""
-        return render(request,'user_center_info.html')
+
+        # 将验证用户的信息进行拼接
+        context = {
+            'username':request.user.username,
+            'mobile':request.user.mobile,
+            'email':request.user.email,
+            'email_active':request.user.email_active
+        }
+        return render(request,'user_center_info.html',context=context)
+
+
+class EmailView(LoginRequiredMixin,View):
+    """添加邮箱"""
+
+    def put(self,request):
+        """实现添加邮箱逻辑"""
+        # 接收参数
+        json_dict = json.loads(request.body.decode())
+        email = json_dict.get('email')
+
+        # 校验参数
+        if not email:
+            return HttpResponseForbidden('缺少email参数')
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return HttpResponseForbidden('参数email有误')
+
+        # 赋值email字段
+        try:
+            request.user.email = email
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            # DBERR = "5000"
+            return JsonResponse({
+                'code':RETCODE.DBERR,
+                'errmsg':'添加邮箱失败'
+            })
+
+
+        # 异步发送验证邮件
+        verify_url = request.user.generate_verify_email_url()
+        send_verify_email.delay(email,verify_url)
+
+        # 响应添加邮箱结果
+        return JsonResponse({
+            'code':RETCODE.OK,
+            'errmsg':'添加邮箱成功'
+        })
+
+
+
+class VerifyEmailView(View):
+    """验证邮箱"""
+
+    def get(self,request):
+        """实现邮箱验证逻辑"""
+        # 接收参数
+        token = request.GET.get('token')
+
+        # 校验参数:判断token是否为空 或 过期,提取user
+        if not token:
+            return HttpResponseBadRequest('缺少token值')
+
+        # 调用上面封装好的方法,将token传入
+        user = User.check_verify_email_token(token)
+
+        if not user:
+            return HttpResponseForbidden('无效的token值')
+
+        # 修改email_active的值为True
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return HttpResponseServerError('激活邮件失败')
+
+        # 返回邮箱验证结果
+        return redirect(reverse('users:info'))
