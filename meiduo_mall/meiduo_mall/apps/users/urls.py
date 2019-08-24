@@ -19,4 +19,6 @@ urlpatterns = [
     url(r'^emails/$', views.EmailView.as_view()),
     # 验证邮箱
     url(r'^emails/verification/$', views.VerifyEmailView.as_view()),
+    # 地址页面展示路由:
+    url(r'^info/user_center_site.html/$', views.AddressView.as_view(), name='address'),
 ]

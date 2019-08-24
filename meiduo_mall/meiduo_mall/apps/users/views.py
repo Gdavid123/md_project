@@ -315,3 +315,11 @@ class VerifyEmailView(View):
 
         # 返回邮箱验证结果
         return redirect(reverse('users:info'))
+
+
+class AddressView(LoginRequiredMixin,View):
+    """用户收货地址"""
+
+    def get(self,request):
+        """提供收货地址界面"""
+        return render(request,'user_center_site.html')
