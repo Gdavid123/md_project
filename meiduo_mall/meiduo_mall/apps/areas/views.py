@@ -27,7 +27,7 @@ class ProvinceAreasView(View):
         province_list = cache.get('province_list')
 
         if not province_list:
-            # 1.查询省级数据
+            # 1.查询省级数据 查询集返回的是从数据库中获取的对象集合
             try:
                 province_model_list = Area.objects.filter(parent__isnull=True)
 
