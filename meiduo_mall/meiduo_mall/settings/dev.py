@@ -14,6 +14,7 @@ import os, sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
 # Quick-start development settings - unsuitable for production
@@ -40,7 +41,9 @@ INSTALLED_APPS = [
     'contents',
     'verifications',
     'oauth',
-    'areas'
+    'areas',
+    'goods',
+    'haystack'
 ]
 
 MIDDLEWARE = [
@@ -245,3 +248,29 @@ EMAIL_HOST_PASSWORD = '59598048guo'
 EMAIL_FROM = 'G老板<qq1012549004@163.com>'
 # 邮箱验证链接
 EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
+
+
+
+# FDFS客户端的配置文件.
+FDFS_CLIENT_CONF = os.path.join(BASE_DIR, 'utils/fastdfs/client.conf')
+# 访问FDFS中存储的文件时,地址有可能变化, 所以我们把地址放在这里记录:
+FDFS_URL = 'http://192.168.228.228:8888/'
+
+# 指定django系统使用的文件存储类:
+DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fastdfs_storage.FastDFSStorage'
+
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.228.228:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+# 可以在 dev.py 中添加如下代码, 用于决定每页显示数据条数:
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
