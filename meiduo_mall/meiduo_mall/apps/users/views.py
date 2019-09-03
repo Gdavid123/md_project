@@ -7,6 +7,8 @@ from django.db import DatabaseError
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest, \
     HttpResponseServerError
 from django.shortcuts import render, redirect
+
+from carts.utils import merge_cart_cookie_to_redis
 from celery_tasks.email.tasks import send_verify_email
 # Create your views here.
 from django.urls import reverse
@@ -100,6 +102,8 @@ class RegisterView(View):
         # 将用户名写入到cookie,有效期15天
         response.set_cookie('username',user.username,max_age=3600*24*15)
 
+        # 合并购物车
+        response = merge_cart_cookie_to_redis(request=request, response=response)
         # 返回响应结果
         return response
 
@@ -207,6 +211,8 @@ class LoginView(View):
         # 设置cookie信息
         response.set_cookie('username',user.username,max_age=3600*24*15)
 
+        # 合并购物车
+        response = merge_cart_cookie_to_redis(request=request,response=response)
         # 返回响应
         return response
 

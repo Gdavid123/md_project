@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'oauth',
     'areas',
     'goods',
-    'haystack'
+    'haystack',
+    'carts',
+    'orders'
 ]
 
 MIDDLEWARE = [
@@ -178,6 +180,13 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
+    "carts": { # 购物车数据
+    "BACKEND": "django_redis.cache.RedisCache",
+    "LOCATION": "redis://127.0.0.1:6379/5",
+    "OPTIONS": {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+    }
+},
 }
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"

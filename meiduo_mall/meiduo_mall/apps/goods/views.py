@@ -8,7 +8,8 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
 
-from goods.models import GoodsCategory, SKU, GoodsVisitCount
+from goods.models import GoodsCategory, SKU
+from goods.models import GoodsVisitCount
 from goods.utils import get_categories, get_breadcrumb, get_goods_and_spec
 from meiduo_mall.utils.response_code import RETCODE
 import logging
